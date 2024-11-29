@@ -21,25 +21,33 @@ public class Song {
             frameRatePerMilliseconds = (double) mp3File.getFrameCount() / mp3File.getLengthInMilliseconds();
             songLength = convertToSongLengthFormat();
 
-            // Use the jaudiotagger library to create an AudioFile object to read mp3 file's information
             AudioFile audioFile = AudioFileIO.read(new File(filePath));
-
-            // Read through the meta data of the audio file
             Tag tag = audioFile.getTag();
-            if (tag != null) {
-                songTitle = tag.getFirst(FieldKey.TITLE);
-                songArtist = tag.getFirst(FieldKey.ARTIST);
-            } else {
-                // Could not read through mp3 file's meta data
-                songTitle = "Unknown Title";
-                songArtist = "Unknown Artist";
-            }
+
+
+            songTitle = (tag != null && tag.getFirst(FieldKey.TITLE) != null && !tag.getFirst(FieldKey.TITLE).isEmpty())
+                    ? tag.getFirst(FieldKey.TITLE)
+                    : extractTitleFromFileName(filePath);
+
+            songArtist = (tag != null && tag.getFirst(FieldKey.ARTIST) != null && !tag.getFirst(FieldKey.ARTIST).isEmpty())
+                    ? tag.getFirst(FieldKey.ARTIST)
+                    : "Unknown Artist";
+
+
+
         } catch (Exception e) {
             System.err.println("Error reading song metadata for file: " + filePath);
+            songTitle = extractTitleFromFileName(filePath);
+            songArtist = "Unknown Artist";
             e.printStackTrace();
-            songTitle = "Error";
-            songArtist = "Error";
         }
+    }
+
+    private String extractTitleFromFileName(String filePath) {
+        File file = new File(filePath);
+        String fileName = file.getName();
+        // Remove file extension
+        return fileName.replaceFirst("[.][^.]+$", "");
     }
 
     private String convertToSongLengthFormat() {
@@ -48,7 +56,7 @@ public class Song {
         return String.format("%02d:%02d", minutes, seconds);
     }
 
-    // Getters
+    //Mga Getter
     public String getSongTitle() {
         return songTitle;
     }
