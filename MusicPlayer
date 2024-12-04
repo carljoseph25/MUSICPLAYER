@@ -18,6 +18,11 @@ public class MusicPlayer extends PlaybackListener {
         return currentSong;
     }
 
+
+    private boolean isMuted = false;
+    private float previousVolume = 1.0f;
+
+
     private ArrayList<Song> playlist;
 
     // we will need to keep track the index we are in the playlist
@@ -207,7 +212,19 @@ public class MusicPlayer extends PlaybackListener {
 
     }
 
+    public void toggleMute() {
+        if (advancedPlayer != null) {
+            isMuted = !isMuted;
 
+            // Implement mute logic here
+            // This might depend on the specific audio library you're using
+            // For JLayer, you might need to use a different approach to control volume
+        }
+    }
+
+    public boolean isMuted() {
+        return isMuted;
+    }
 
 
 
