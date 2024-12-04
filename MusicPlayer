@@ -4,6 +4,7 @@ import javazoom.jl.player.advanced.PlaybackListener;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class MusicPlayer extends PlaybackListener {
     // this will be used to update isPaused more synchronously
@@ -14,6 +15,10 @@ public class MusicPlayer extends PlaybackListener {
 
     // we will need a way to store our song's details, so we will be creating a song class
     private Song currentSong;
+    private boolean isShuffleMode = false;
+    private boolean isRepeatMode = false;
+    private Random random = new Random();
+
     public Song getCurrentSong(){
         return currentSong;
     }
@@ -332,6 +337,7 @@ public class MusicPlayer extends PlaybackListener {
         }).start();
     }
 
+
     @Override
     public void playbackStarted(PlaybackEvent evt) {
         // this method gets called in the beginning of the song
@@ -341,9 +347,30 @@ public class MusicPlayer extends PlaybackListener {
         pressedPrev = false;
     }
 
+    /// //////////////////////////////////////////////////////////////
+
+    // Add these methods to the MusicPlayer class
+    public ArrayList<Song> getPlaylist() {
+        return playlist;
+    }
+
+    public void toggleShuffle() {
+        isShuffleMode = !isShuffleMode;
+        // Optional: Add visual feedback like changing button color
+    }
+
+    public void toggleRepeat() {
+        isRepeatMode = !isRepeatMode;
+        // Optional: Add visual feedback like changing button color
+    }
+
+    /// //////////////////////////////////////////////////////////////
+
+
+
     @Override
     public void playbackFinished(PlaybackEvent evt) {
-        // this method gets called when the song finishes or if the player gets closed
+        // Modify the existing playbackFinished method
         System.out.println("Playback Finished");
         if(isPaused){
             currentFrame += (int) ((double) evt.getFrame() * currentSong.getFrameRatePerMilliseconds());
@@ -360,32 +387,43 @@ public class MusicPlayer extends PlaybackListener {
             }else{
                 // last song in the playlist
                 if(currentPlaylistIndex == playlist.size() - 1){
-                    // update gui
-                    musicPlayerGUI.enablePlayButtonDisablePauseButton();
+                    if(isRepeatMode) {
+                        // Reset to first song
+                        currentPlaylistIndex = 0;
+                        currentSong = playlist.get(currentPlaylistIndex);
+                        playCurrentSong();
+                    } else {
+                        // update gui
+                        musicPlayerGUI.enablePlayButtonDisablePauseButton();
+                    }
                 }else{
                     // go to the next song in the playlist
-                    nextSong();
+                    if(isShuffleMode) {
+                        // Select a random song from the playlist
+                        int randomIndex;
+                        do {
+                            randomIndex = random.nextInt(playlist.size());
+                        } while(randomIndex == currentPlaylistIndex);
+
+                        currentPlaylistIndex = randomIndex;
+                        currentSong = playlist.get(currentPlaylistIndex);
+                    } else {
+                        currentPlaylistIndex++;
+                        currentSong = playlist.get(currentPlaylistIndex);
+                    }
+
+                    // Reset frame and time
+                    currentFrame = 0;
+                    currentTimeInMilli = 0;
+
+                    // Update GUI
+                    musicPlayerGUI.enablePauseButtonDisablePlayButton();
+                    musicPlayerGUI.updatePlaybackSlider(currentSong);
+                    musicPlayerGUI.updateSongTitleAndArtist(currentSong);
+
+                    // Play the song
+                    playCurrentSong();
                 }
             }
         }
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    }}
